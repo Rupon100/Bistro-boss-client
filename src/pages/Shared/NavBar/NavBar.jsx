@@ -2,9 +2,14 @@ import { useContext } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../../../Providers/AuthProvider";
 import Swal from "sweetalert2";
+import { FaShoppingCart } from "react-icons/fa";
+import { Toaster } from 'react-hot-toast';
+import useCart from "../../../Hooks/useCart";
 
 const NavBar = () => {
   const { user, logOut } = useContext(AuthContext);
+  const [cart] = useCart();
+  console.log(cart.length)
 
   const handleLogout = () => {
     logOut()
@@ -30,6 +35,8 @@ const NavBar = () => {
 
   return (
     <>
+      <Toaster />
+
       <div className="navbar fixed z-10 bg-opacity-30 max-w-screen-xl bg-black text-white">
         <div className="navbar-start">
           <div className="dropdown">
@@ -62,6 +69,12 @@ const NavBar = () => {
           <ul className="menu menu-horizontal px-1 space-x-4 ">{navOptions}</ul>
         </div>
         <div className="navbar-end space-x-4">
+
+          <Link to={`/dashboard/cart`} className="btn space-x-2 ">
+            <FaShoppingCart />
+            <div className="badge badge-secondary">+{cart.length}</div>
+          </Link>
+
           {user ? (
             <>
               <button className="btn btn-ghost" onClick={handleLogout}>
@@ -70,7 +83,10 @@ const NavBar = () => {
             </>
           ) : (
             <>
-              <Link className="btn" to={`/login`}> Login </Link>
+              <Link className="btn" to={`/login`}>
+                {" "}
+                Login{" "}
+              </Link>
             </>
           )}
         </div>
