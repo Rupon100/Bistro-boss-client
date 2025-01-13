@@ -7,6 +7,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { AuthContext } from "../../Providers/AuthProvider";
+import SocialLogin from "../../components/SocialLogin";
 // import ReCAPTCHA from "react-google-recaptcha";
 
 const Login = () => {
@@ -108,6 +109,7 @@ const Login = () => {
               </button>
             </div>
           </form>
+          <SocialLogin></SocialLogin>
           <p>
             <small>
               New Here? <Link to={`/signup`}>Sign Up</Link>{" "}

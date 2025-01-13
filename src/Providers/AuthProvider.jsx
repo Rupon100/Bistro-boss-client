@@ -1,7 +1,8 @@
 import { createContext, useEffect, useState } from "react";
 // import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "fireba"
 import { auth } from './../Firebase/firebase.config';
-import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut, updateProfile } from "firebase/auth";
+import { createUserWithEmailAndPassword, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut, updateProfile } from "firebase/auth";
+import useAxiosPublic from "../Hooks/useAxiosPublic";
  
 
 export const AuthContext = createContext(null);
@@ -9,7 +10,15 @@ export const AuthContext = createContext(null);
 const AuthProvider = ({children}) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const googleProvider = new GoogleAuthProvider();
+    const axiosPublic = useAxiosPublic();
 
+
+
+    const googleSignin = () => {
+        setLoading(true);
+        return signInWithPopup(auth, googleProvider);
+    }
 
 
 
@@ -40,16 +49,35 @@ const AuthProvider = ({children}) => {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, currentUser => {
-            setUser(currentUser);
+          
             console.log("Currest user -- >", currentUser);
-            setLoading(false);
+            if(currentUser){
+                // get token and store client
+                const userInfo = {email: currentUser?.email};
+                axiosPublic.post('/jwt', userInfo)
+                .then(res => {
+                    if(res.data.token){
+                        localStorage.setItem('access-token', res.data.token);
+                        console.log(res.data.token)
+                        setUser(currentUser);
+                        setLoading(false);
+                    }
+                })
+            }else{
+                // todo:  remove token(if stored)
+                localStorage.removeItem('access-token');
+            
+                setUser(currentUser);
+                setLoading(false);
+            }
+           
         });
 
         return () => {
             return unsubscribe();
         }
 
-    }, [])
+    }, [axiosPublic])
 
     const authInfo = {
         user,
@@ -57,7 +85,8 @@ const AuthProvider = ({children}) => {
         createUser,
         signUser,
         logOut,
-        updateUserProfile 
+        updateUserProfile ,
+        googleSignin
     }
     
     return (

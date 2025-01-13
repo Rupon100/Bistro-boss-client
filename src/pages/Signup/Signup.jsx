@@ -1,37 +1,44 @@
 import { Link, useFormAction } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { Helmet } from 'react-helmet-async';
+import { Helmet } from "react-helmet-async";
 import { useContext } from "react";
-import { AuthContext } from './../../Providers/AuthProvider';
+import { AuthContext } from "./../../Providers/AuthProvider";
+import useAxiosPublic from "../../Hooks/useAxiosPublic";
+import toast from "react-hot-toast";
+import SocialLogin from "../../components/SocialLogin";
 
 const Signup = () => {
+  const axiosPublic = useAxiosPublic();
 
-  const {createUser,  updateUserProfile } = useContext(AuthContext); 
+  const { createUser, updateUserProfile } = useContext(AuthContext);
 
   const {
     register,
     handleSubmit,
     reset,
-    watch,
     formState: { errors },
   } = useForm();
 
   const onSubmit = (data) => {
     console.log(data);
-    createUser(data.email, data.password)
-    .then(result => {
+    createUser(data.email, data.password).then((result) => {
       console.log(result);
       updateUserProfile(data.name, data.photoURL)
-      .then(() => {
-        console.log("user profile updated")
-        reset();
-      })
-      .catch(err => {
-
-      })
-    })
-  }
-
+        .then(() => {
+          const userInfo = {
+            name: data.name,
+            email: data.email,
+          };
+          axiosPublic.post("/users", userInfo).then((res) => {
+            if (res.data.insertedId) {
+              toast.success("User Added to the DB!");
+              reset();
+            }
+          });
+        })
+        .catch((err) => {});
+    });
+  };
 
   return (
     <div className="hero bg-base-200 min-h-screen">
@@ -60,7 +67,7 @@ const Signup = () => {
                 name="name"
                 className="input input-bordered"
               />
-                {errors.name && <span>This field is required</span>}
+              {errors.name && <span>This field is required</span>}
             </div>
             <div className="form-control">
               <label className="label">
@@ -72,7 +79,7 @@ const Signup = () => {
                 placeholder="photoURL"
                 className="input input-bordered"
               />
-                {errors.photoURL && <span>PhotoURL is required</span>}
+              {errors.photoURL && <span>PhotoURL is required</span>}
             </div>
             <div className="form-control">
               <label className="label">
@@ -88,7 +95,6 @@ const Signup = () => {
               {errors.email && <span>This field is required</span>}
             </div>
 
-
             <div className="form-control">
               <label className="label">
                 <span className="label-text">Password</span>
@@ -99,22 +105,27 @@ const Signup = () => {
                   required: true,
                   minLength: 4,
                   maxLength: 8,
-                  pattern: /^(?=.{6,})((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/
+                  pattern:
+                    /^(?=.{6,})((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/,
                 })}
                 placeholder="password"
                 className="input input-bordered"
               />
-              
-              {errors.password?.type === 'pattern' && <p className="text-red-700">The pass should have 1 uppercase 1 lower and min 8 char.</p>}
 
+              {errors.password?.type === "pattern" && (
+                <p className="text-red-700">
+                  The pass should have 1 uppercase 1 lower and min 8 char.
+                </p>
+              )}
             </div>
-
-
 
             <div className="form-control mt-6">
               <button className="btn btn-primary">Sign Up</button>
             </div>
           </form>
+
+          <SocialLogin></SocialLogin>
+
           <p>
             <small>
               Have an account? <Link to={`/login`}>Login</Link>
